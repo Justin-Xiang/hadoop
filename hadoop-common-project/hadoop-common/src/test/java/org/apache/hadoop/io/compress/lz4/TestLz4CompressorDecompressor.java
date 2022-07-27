@@ -44,6 +44,14 @@ import org.apache.hadoop.test.MultithreadedTestUtil;
 import org.junit.Test;
 import static org.junit.Assume.*;
 
+
+import org.apache.hadoop.conf.ConfigurationGenerator;
+import org.junit.runner.RunWith;
+import edu.berkeley.cs.jqf.fuzz.Fuzz;
+import edu.berkeley.cs.jqf.fuzz.JQF;
+import com.pholser.junit.quickcheck.From;
+
+@RunWith(JQF.class)
 public class TestLz4CompressorDecompressor {
   
   private static final Random rnd = new Random(12345l);
@@ -329,15 +337,14 @@ public class TestLz4CompressorDecompressor {
     ctx.waitFor(60000);
   }
 
-  @Test
-  public void testLz4Compatibility() throws Exception {
+  @Fuzz
+  public void testLz4Compatibility(@From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     // The sequence file was created using native Lz4 codec before HADOOP-17292.
     // After we use lz4-java for lz4 compression, this test makes sure we can
     // decompress the sequence file correctly.
     Path filePath = new Path(TestLz4CompressorDecompressor.class
         .getResource("/lz4/sequencefile").toURI());
 
-    Configuration conf = new Configuration();
     conf.setInt("io.seqfile.compress.blocksize", 1000);
     FileSystem fs = FileSystem.get(conf);
 

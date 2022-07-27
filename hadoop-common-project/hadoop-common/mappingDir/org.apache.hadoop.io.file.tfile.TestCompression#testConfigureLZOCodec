@@ -1,0 +1,3 @@
+io.compression.codec.lzo.class = org.apache.hadoop.io.compress.DefaultCodec
+test.reload.lzo.codec = false
+test.reload.lzo.codec = true

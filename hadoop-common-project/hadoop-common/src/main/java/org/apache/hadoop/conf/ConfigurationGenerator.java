@@ -29,7 +29,10 @@ public class ConfigurationGenerator extends Generator<Configuration> {
     /* Mapping that keeps all parameter valid values supportted */
     private static Map<String, List<String>> paramConstrainMapping = null;
 
-    /* Mapping directory that stores all test-param mapping files. Set with -Dmapping.dir=XXX */
+    /*
+     * Mapping directory that stores all test-param mapping files. Set with
+     * -Dmapping.dir=XXX
+     */
     private static String mappingDir = null;
     /* Mapping that let generator know which configuration parameter to fuzz */
     private static Map<String, String> curTestMapping = null;
@@ -40,26 +43,27 @@ public class ConfigurationGenerator extends Generator<Configuration> {
     public ConfigurationGenerator() throws IOException {
         super(Configuration.class);
         clzName = System.getProperty("class");
-        //System.out.println(clzName);
+        // System.out.println(clzName);
         methodName = System.getProperty("method");
-        //System.out.println(methodName);
+        // System.out.println(methodName);
         mappingDir = System.getProperty("mapping.dir", "mappingDir");
-        //System.out.println(mappingDir);
+        // System.out.println(mappingDir);
         constrainFile = System.getProperty("constrain.file", "constrain");
-        //System.out.println(constrainFile);
+        // System.out.println(constrainFile);
         curTestMapping = parseTestParam(clzName, methodName);
         paramConstrainMapping = parseParamConstrain();
     }
 
     /**
      * This method is invoked to generate a Configuration object
+     * 
      * @param random
      * @param generationStatus
      * @return
      */
     @Override
     public Configuration generate(SourceOfRandomness random, GenerationStatus generationStatus) {
-        //Initialize a Configuration object
+        // Initialize a Configuration object
         Configuration conf = new Configuration();
         if (clzName == null || methodName == null) {
             throw new RuntimeException("Must specify test class name and test method name!");
@@ -68,32 +72,38 @@ public class ConfigurationGenerator extends Generator<Configuration> {
             throw new RuntimeException("Unable to get configuration mapping for current test: " + clzName + "#" +
                     methodName);
         }
-        // System.out.println("Current generate value for: " + clzName + "#" + methodName);
-        // Here should be a for loop to set all the configuration parameter that used in the set;
-        // For now we use TestIdentityProviders#testPluggableIdentityProvider as an example, which
+        // System.out.println("Current generate value for: " + clzName + "#" +
+        // methodName);
+        // Here should be a for loop to set all the configuration parameter that used in
+        // the set;
+        // For now we use TestIdentityProviders#testPluggableIdentityProvider as an
+        // example, which
         // only sets one param: CommonConfigurationKeys.IPC_IDENTITY_PROVIDER_KEY
 
-        // conf.set(CommonConfigurationKeys.IPC_IDENTITY_PROVIDER_KEY, random.nextBytes(100).toString());
+        // conf.set(CommonConfigurationKeys.IPC_IDENTITY_PROVIDER_KEY,
+        // random.nextBytes(100).toString());
         // conf.setInt("fs.ftp.host.port", random.nextInt());
 
         for (Map.Entry<String, String> entry : curTestMapping.entrySet()) {
             if (!isNullOrEmpty(entry.getValue())) {
-                //System.out.println("No." + i++ + "Looping " + entry.getKey());
+                // System.out.println("No." + i++ + "Looping " + entry.getKey());
                 try {
                     String randomValue = randomValue(entry.getKey(), entry.getValue(), random);
                     conf.set(entry.getKey(), randomValue);
                 } catch (Exception e) {
-                    System.out.println(" Configuration Name: " + entry.getKey() + " value " + entry.getValue() + " Exception:");
+                    System.out.println(
+                            " Configuration Name: " + entry.getKey() + " value " + entry.getValue() + " Exception:");
                     e.printStackTrace();
                     continue;
                 }
             }
         }
-	    return conf;
+        return conf;
     }
- 
+
     /**
      * Return a random value based on the type of @param value
+     * 
      * @param value
      * @return
      */
@@ -109,23 +119,24 @@ public class ConfigurationGenerator extends Generator<Configuration> {
             return String.valueOf(random.nextInt());
         } else if (isFloat(value)) {
             return String.valueOf(random.nextFloat());
-        }   
+        }
+        
         // if not above, return a random string
 
-        // There is a bug in this generation, wait for fix
-        // int length = random.nextInt(100);
-        // StringBuilder sb = new StringBuilder(length);       
-        // for(int i=0;i<length;i++) {
-        //     // int randomIndex = random.nextInt(ALL_MY_CHARS.length());
-        //     // sb.append(ALL_MY_CHARS.charAt(randomIndex));
-        // }
-        // System.out.println("Generating random String for " + name + " : " + sb);
-        
+        int length = random.nextInt(100);
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(ALL_MY_CHARS.length());
+            sb.append(ALL_MY_CHARS.charAt(randomIndex));
+        }
+        System.out.println("Generating random String for " + name + " : " + sb);
+        return sb.toString();
         // for now we only fuzz numeric and boolean configuration parameters.
-        String returnStr = String.valueOf(random.nextBytes(10));
-        // System.out.println("Generating random String for " + name + " : " + returnStr);
-        return returnStr;
-        //return value;
+        // String returnStr = String.valueOf(random.nextBytes(10));
+        // System.out.println("Generating random String for " + name + " : " +
+        // returnStr);
+        // return returnStr;
+        // return value;
     }
 
     private static String randomValueFromConstrain(String name, SourceOfRandomness random) {
@@ -139,7 +150,7 @@ public class ConfigurationGenerator extends Generator<Configuration> {
     private static Map<String, List<String>> parseParamConstrain() throws IOException {
         Map<String, List<String>> result = new HashMap<String, List<String>>();
         File file = Paths.get(mappingDir, constrainFile).toFile();
-        if (!file.exists() || !file.isFile()){
+        if (!file.exists() || !file.isFile()) {
             throw new IOException("Unable to read file: " + file.getPath());
         }
         BufferedReader br = new BufferedReader(new FileReader(file));
@@ -161,7 +172,9 @@ public class ConfigurationGenerator extends Generator<Configuration> {
     }
 
     /**
-     * Read configuration parameters and their exercised value in className#methodName
+     * Read configuration parameters and their exercised value in
+     * className#methodName
+     * 
      * @param className
      * @param methodName
      * @return
@@ -191,7 +204,7 @@ public class ConfigurationGenerator extends Generator<Configuration> {
                 String name = line.substring(0, index - 1).trim();
                 String value = line.substring(index + 1).trim();
                 mapping.put(name, value);
-                //System.out.println(name + " = " + value);
+                // System.out.println(name + " = " + value);
             }
         }
         br.close();
@@ -242,7 +255,6 @@ public class ConfigurationGenerator extends Generator<Configuration> {
         }
     }
 
-
     public static void main(String[] args) {
         Path file = Paths.get("/home/swang516/xlab/test_file");
         try {
@@ -250,16 +262,17 @@ public class ConfigurationGenerator extends Generator<Configuration> {
             // SourceOfRandomness random = new SourceOfRandomness(new Random());
             // curTestMapping = readFileToMapping(file);
             // // for (Map.Entry<String, String> entry : curTestMapping.entrySet()) {
-            // //     System.out.println(entry.getKey() + "=" + entry.getValue());
+            // // System.out.println(entry.getKey() + "=" + entry.getValue());
             // // }
 
             // for (Map.Entry<String, String> entry : curTestMapping.entrySet()) {
-            //     if (!isNullOrEmpty(entry.getValue())) {
-            //         System.out.println(entry.getKey() + "= old: " + entry.getValue() + " new: " + randomValue(entry.getKey(), entry.getValue(), random));
-            //     }
+            // if (!isNullOrEmpty(entry.getValue())) {
+            // System.out.println(entry.getKey() + "= old: " + entry.getValue() + " new: " +
+            // randomValue(entry.getKey(), entry.getValue(), random));
             // }
-        } catch(Exception e) {
-           e.printStackTrace();
+            // }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

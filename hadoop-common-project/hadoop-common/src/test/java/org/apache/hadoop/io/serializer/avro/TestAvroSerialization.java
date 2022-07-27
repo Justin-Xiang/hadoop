@@ -26,6 +26,13 @@ import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.SerializationTestUtil;
 import org.junit.Test;
 
+import org.apache.hadoop.conf.ConfigurationGenerator;
+import org.junit.runner.RunWith;
+import edu.berkeley.cs.jqf.fuzz.Fuzz;
+import edu.berkeley.cs.jqf.fuzz.JQF;
+import com.pholser.junit.quickcheck.From;
+
+@RunWith(JQF.class)
 public class TestAvroSerialization {
 
   private static final Configuration conf = new Configuration();
@@ -38,8 +45,8 @@ public class TestAvroSerialization {
     assertEquals(before, after);
   }
 
-  @Test
-  public void testReflectPkg() throws Exception {
+  @Fuzz
+  public void testReflectPkg(@From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     Record before = new Record();
     before.x = 10;
     conf.set(AvroReflectSerialization.AVRO_REFLECT_PACKAGES, 
@@ -48,15 +55,16 @@ public class TestAvroSerialization {
     assertEquals(before, after);
   }
 
-  @Test
-  public void testAcceptHandlingPrimitivesAndArrays() throws Exception {
+  @Fuzz
+  public void testAcceptHandlingPrimitivesAndArrays(
+      @From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     SerializationFactory factory = new SerializationFactory(conf);
     assertNull(factory.getSerializer(byte[].class));
     assertNull(factory.getSerializer(byte.class));
   }
 
-  @Test
-  public void testReflectInnerClass() throws Exception {
+  @Fuzz
+  public void testReflectInnerClass(@From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     InnerRecord before = new InnerRecord();
     before.x = 10;
     conf.set(AvroReflectSerialization.AVRO_REFLECT_PACKAGES, 

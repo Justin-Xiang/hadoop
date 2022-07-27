@@ -1,2 +1,2 @@
+avro.reflect.pkgs = org.apache.hadoop.io.serializer.avro
 io.serializations = org.apache.hadoop.io.serializer.WritableSerialization,
-test.generic.writable = dummy
