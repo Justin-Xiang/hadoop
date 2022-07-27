@@ -29,6 +29,13 @@ import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.io.Writable;
 import org.slf4j.event.Level;
 
+import org.apache.hadoop.conf.ConfigurationGenerator;
+import org.junit.runner.RunWith;
+import edu.berkeley.cs.jqf.fuzz.Fuzz;
+import edu.berkeley.cs.jqf.fuzz.JQF;
+import com.pholser.junit.quickcheck.From;
+
+@RunWith(JQF.class)
 public class TestSerializationFactory {
 
   static {
@@ -38,15 +45,14 @@ public class TestSerializationFactory {
   static Configuration conf;
   static SerializationFactory factory;
 
-  @BeforeClass
-  public static void setup() throws Exception {
-    conf = new Configuration();
-    factory = new SerializationFactory(conf);
-  }
+  // @BeforeClass
+  // public static void setup() throws Exception {
+  //   conf = new Configuration();
+  //   factory = new SerializationFactory(conf);
+  // }
 
-  @Test
-  public void testSerializationKeyIsEmpty() {
-    Configuration conf = new Configuration();
+  @Fuzz
+  public void testSerializationKeyIsEmpty(@From(ConfigurationGenerator.class) Configuration conf) {
     conf.set(CommonConfigurationKeys.IO_SERIALIZATIONS_KEY, "");
     SerializationFactory factory = new SerializationFactory(conf);
   }
@@ -57,16 +63,14 @@ public class TestSerializationFactory {
    * This shouldn't result in any error, the defaults present
    * in construction should be used in this case.
    */
-  @Test
-  public void testSerializationKeyIsUnset() {
-    Configuration conf = new Configuration();
+  @Fuzz
+  public void testSerializationKeyIsUnset(@From(ConfigurationGenerator.class) Configuration conf) {
     conf.unset(CommonConfigurationKeys.IO_SERIALIZATIONS_KEY);
     SerializationFactory factory = new SerializationFactory(conf);
   }
 
-  @Test
-  public void testSerializationKeyIsInvalid() {
-    Configuration conf = new Configuration();
+  @Fuzz
+  public void testSerializationKeyIsInvalid(@From(ConfigurationGenerator.class) Configuration conf) {
     conf.set(CommonConfigurationKeys.IO_SERIALIZATIONS_KEY, "INVALID_KEY_XXX");
     SerializationFactory factory = new SerializationFactory(conf);
   }
@@ -81,8 +85,9 @@ public class TestSerializationFactory {
         factory.getSerializer(TestSerializationFactory.class));
   }
 
-  @Test
-  public void testGetDeserializer() {
+  @Fuzz
+  public void testGetDeserializer(@From(ConfigurationGenerator.class) Configuration conf) {
+    factory = new SerializationFactory(conf);
     // Test that a valid serializer class is returned when its present
     assertNotNull("A valid class must be returned for default Writable SerDe",
         factory.getDeserializer(Writable.class));
@@ -91,9 +96,8 @@ public class TestSerializationFactory {
         factory.getDeserializer(TestSerializationFactory.class));
   }
 
-  @Test
-  public void testSerializationKeyIsTrimmed() {
-    Configuration conf = new Configuration();
+  @Fuzz
+  public void testSerializationKeyIsTrimmed(@From(ConfigurationGenerator.class) Configuration conf) {
     conf.set(CommonConfigurationKeys.IO_SERIALIZATIONS_KEY, " org.apache.hadoop.io.serializer.WritableSerialization ");
     SerializationFactory factory = new SerializationFactory(conf);
     assertNotNull("Valid class must be returned",

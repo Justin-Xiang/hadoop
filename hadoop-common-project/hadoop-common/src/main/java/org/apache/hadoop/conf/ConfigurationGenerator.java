@@ -13,7 +13,12 @@ public class ConfigurationGenerator extends Generator<Configuration> {
 
     private static String PARAM_EQUAL_MARK = "=";
     private static String PARAM_VALUE_SPLITOR = ";";
-
+    private static final String LOWERCASE_CHARS = "abcdefghijklmnopqrstuvwxyz";
+    private static final String UPPERCASE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String NUMBERS = "0123456789";
+    private static final String SPECIAL_CHARS = ".-\\;:_@[]^/|}{";
+    private static final String ALL_MY_CHARS = LOWERCASE_CHARS
+            + UPPERCASE_CHARS + NUMBERS + SPECIAL_CHARS;
     /* Current Fuzzing Test Class Name; Set with -Dclass=XXX */
     private static String clzName = null;
     /* Currently Fuzzing Test Method Name; Set with -Dmethod=XXX */
@@ -35,9 +40,13 @@ public class ConfigurationGenerator extends Generator<Configuration> {
     public ConfigurationGenerator() throws IOException {
         super(Configuration.class);
         clzName = System.getProperty("class");
+        //System.out.println(clzName);
         methodName = System.getProperty("method");
+        //System.out.println(methodName);
         mappingDir = System.getProperty("mapping.dir", "mappingDir");
+        //System.out.println(mappingDir);
         constrainFile = System.getProperty("constrain.file", "constrain");
+        //System.out.println(constrainFile);
         curTestMapping = parseTestParam(clzName, methodName);
         paramConstrainMapping = parseParamConstrain();
     }
@@ -100,10 +109,21 @@ public class ConfigurationGenerator extends Generator<Configuration> {
             return String.valueOf(random.nextInt());
         } else if (isFloat(value)) {
             return String.valueOf(random.nextFloat());
-        } 
+        }   
+        // if not above, return a random string
+
+        // There is a bug in this generation, wait for fix
+        // int length = random.nextInt(100);
+        // StringBuilder sb = new StringBuilder(length);       
+        // for(int i=0;i<length;i++) {
+        //     // int randomIndex = random.nextInt(ALL_MY_CHARS.length());
+        //     // sb.append(ALL_MY_CHARS.charAt(randomIndex));
+        // }
+        // System.out.println("Generating random String for " + name + " : " + sb);
+        
         // for now we only fuzz numeric and boolean configuration parameters.
         String returnStr = String.valueOf(random.nextBytes(10));
-        //System.out.println("Generating random String for " + name + " : " + returnStr);
+        // System.out.println("Generating random String for " + name + " : " + returnStr);
         return returnStr;
         //return value;
     }

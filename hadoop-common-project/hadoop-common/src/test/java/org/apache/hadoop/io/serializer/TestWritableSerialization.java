@@ -34,6 +34,13 @@ import org.apache.hadoop.io.WritableComparator;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import org.apache.hadoop.conf.ConfigurationGenerator;
+import org.junit.runner.RunWith;
+import edu.berkeley.cs.jqf.fuzz.Fuzz;
+import edu.berkeley.cs.jqf.fuzz.JQF;
+import com.pholser.junit.quickcheck.From;
+
+@RunWith(JQF.class)
 public class TestWritableSerialization {
 
   private static final Configuration conf = new Configuration();
@@ -45,8 +52,8 @@ public class TestWritableSerialization {
     assertEquals(before, after);
   }
   
-  @Test
-  public void testWritableConfigurable() throws Exception {
+  @Fuzz
+  public void testWritableConfigurable(@From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     
     //set the configuration parameter
     conf.set(CONF_TEST_KEY, CONF_TEST_VALUE);

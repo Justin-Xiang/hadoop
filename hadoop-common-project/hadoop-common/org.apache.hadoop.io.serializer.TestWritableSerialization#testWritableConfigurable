@@ -1,0 +1,2 @@
+io.serializations = org.apache.hadoop.io.serializer.WritableSerialization,
+test.generic.writable = dummy

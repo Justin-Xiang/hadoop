@@ -1,0 +1,2 @@
+io.serializations = 
+io.serializations = org.apache.hadoop.io.serializer.WritableSerialization,

@@ -62,10 +62,8 @@ import com.pholser.junit.quickcheck.From;
 public class TestConfServlet {
   private static final String TEST_KEY = "testconfservlet.key";
   private static final String TEST_VAL = "testval";
-  private static final Map<String, String> TEST_PROPERTIES =
-      new HashMap<String, String>();
-  private static final Map<String, String> TEST_FORMATS =
-      new HashMap<String, String>();
+  private static final Map<String, String> TEST_PROPERTIES = new HashMap<String, String>();
+  private static final Map<String, String> TEST_FORMATS = new HashMap<String, String>();
 
   @BeforeClass
   public static void initTestProperties() {
@@ -90,7 +88,7 @@ public class TestConfServlet {
 
   private Configuration getMultiPropertiesConf() {
     Configuration testConf = new Configuration(false);
-    for(String key : TEST_PROPERTIES.keySet()) {
+    for (String key : TEST_PROPERTIES.keySet()) {
       testConf.set(key, TEST_PROPERTIES.get(key));
     }
     return testConf;
@@ -106,7 +104,7 @@ public class TestConfServlet {
     verifyMap.put("application/json", ConfServlet.FORMAT_JSON);
 
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-    for(String contentTypeExpected : verifyMap.keySet()) {
+    for (String contentTypeExpected : verifyMap.keySet()) {
       String contenTypeActual = verifyMap.get(contentTypeExpected);
       Mockito.when(request.getHeader(HttpHeaders.ACCEPT))
           .thenReturn(contentTypeExpected);
@@ -126,15 +124,15 @@ public class TestConfServlet {
       ServletContext context = mock(ServletContext.class);
       service.init(servletConf);
       when(context.getAttribute(HttpServer2.CONF_CONTEXT_ATTRIBUTE))
-        .thenReturn(conf);
+          .thenReturn(conf);
       when(service.getServletContext())
-        .thenReturn(context);
+          .thenReturn(context);
 
       HttpServletRequest request = mock(HttpServletRequest.class);
       when(request.getHeader(HttpHeaders.ACCEPT))
-        .thenReturn(TEST_FORMATS.get(format));
+          .thenReturn(TEST_FORMATS.get(format));
       when(request.getParameter("name"))
-        .thenReturn(propertyName);
+          .thenReturn(propertyName);
 
       HttpServletResponse response = mock(HttpServletResponse.class);
       sw = new StringWriter();
@@ -148,16 +146,16 @@ public class TestConfServlet {
       // if property name is null or empty, expect all properties
       // in the response
       if (Strings.isNullOrEmpty(propertyName)) {
-        for(String key : TEST_PROPERTIES.keySet()) {
+        for (String key : TEST_PROPERTIES.keySet()) {
           assertTrue(result.contains(key) &&
               result.contains(TEST_PROPERTIES.get(key)));
         }
       } else {
-        if(conf.get(propertyName) != null) {
+        if (conf.get(propertyName) != null) {
           // if property name is not empty and property is found
           assertTrue(result.contains(propertyName));
-          for(String key : TEST_PROPERTIES.keySet()) {
-            if(!key.equals(propertyName)) {
+          for (String key : TEST_PROPERTIES.keySet()) {
+            if (!key.equals(propertyName)) {
               assertFalse(result.contains(key));
             }
           }
@@ -194,8 +192,8 @@ public class TestConfServlet {
         null
     };
 
-    for(String format : TEST_FORMATS.keySet()) {
-      for(String key : testKeys) {
+    for (String format : TEST_FORMATS.keySet()) {
+      for (String key : testKeys) {
         verifyGetProperty(configurations, format, key);
       }
     }
@@ -209,13 +207,13 @@ public class TestConfServlet {
     String json = sw.toString();
     boolean foundSetting = false;
     Object parsed = JSON.parse(json);
-    Object[] properties = ((Map<String, Object[]>)parsed).get("properties");
+    Object[] properties = ((Map<String, Object[]>) parsed).get("properties");
     for (Object o : properties) {
-      Map<String, Object> propertyInfo = (Map<String, Object>)o;
-      String key = (String)propertyInfo.get("key");
-      String val = (String)propertyInfo.get("value");
-      String resource = (String)propertyInfo.get("resource");
-      //System.err.println("k: " + key + " v: " + val + " r: " + resource);
+      Map<String, Object> propertyInfo = (Map<String, Object>) o;
+      String key = (String) propertyInfo.get("key");
+      String val = (String) propertyInfo.get("value");
+      String resource = (String) propertyInfo.get("resource");
+      // System.err.println("k: " + key + " v: " + val + " r: " + resource);
       if (TEST_KEY.equals(key) && TEST_VAL.equals(val)
           && "programmatically".equals(resource)) {
         foundSetting = true;
@@ -224,14 +222,13 @@ public class TestConfServlet {
     assertTrue(foundSetting);
   }
 
-  @Test
-  public void testWriteXml() throws Exception {
+  @Fuzz
+  public void testWriteXml(@From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     StringWriter sw = new StringWriter();
-    ConfServlet.writeResponse(getTestConf(), sw, "xml");
+    ConfServlet.writeResponse(getTestConf(conf), sw, "xml");
     String xml = sw.toString();
 
-    DocumentBuilderFactory docBuilderFactory 
-      = DocumentBuilderFactory.newInstance();
+    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
     Document doc = builder.parse(new InputSource(new StringReader(xml)));
     NodeList nameNodes = doc.getElementsByTagName("name");
@@ -241,7 +238,7 @@ public class TestConfServlet {
       String key = nameNode.getTextContent();
       if (TEST_KEY.equals(key)) {
         foundSetting = true;
-        Element propertyElem = (Element)nameNode.getParentNode();
+        Element propertyElem = (Element) nameNode.getParentNode();
         String val = propertyElem.getElementsByTagName("value").item(0).getTextContent();
         assertEquals(TEST_VAL, val);
       }
@@ -249,11 +246,11 @@ public class TestConfServlet {
     assertTrue(foundSetting);
   }
 
-  @Test
-  public void testBadFormat() throws Exception {
+  @Fuzz
+  public void testBadFormat(@From(ConfigurationGenerator.class) Configuration conf) throws Exception {
     StringWriter sw = new StringWriter();
     try {
-      ConfServlet.writeResponse(getTestConf(), sw, "not a format");
+      ConfServlet.writeResponse(getTestConf(conf), sw, "not a format");
       fail("writeResponse with bad format didn't throw!");
     } catch (ConfServlet.BadFormatException bfe) {
       // expected
@@ -261,3 +258,4 @@ public class TestConfServlet {
     assertEquals("", sw.toString());
   }
 }
+ 
