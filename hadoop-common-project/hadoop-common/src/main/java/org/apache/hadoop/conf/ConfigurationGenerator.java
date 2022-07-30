@@ -122,7 +122,9 @@ public class ConfigurationGenerator extends Generator<Configuration> {
         }
         
         // if not above, return a random string
-
+        if(name.equals("com.java.test")){
+            return "com.java.test";
+        }
         int length = random.nextInt(100);
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
